@@ -66,6 +66,11 @@ harness = false
 [features]
 default = ["std"]
 runtime-benchmarks = ["frame-benchmarking"]
+runtime-benchmarks-parallel = [
+	"frame-benchmarking",
+	"ark-ff/parallel",
+	"ark-ec/parallel",	
+]
 std = [
 	"serde",
 	"codec/std",
