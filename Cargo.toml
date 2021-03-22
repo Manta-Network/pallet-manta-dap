@@ -71,6 +71,10 @@ runtime-benchmarks-parallel = [
 	"ark-ff/parallel",
 	"ark-ec/parallel",	
 ]
+runtime-benchmarks-asm = [
+	"frame-benchmarking",
+	"ark-ff/asm",
+]
 std = [
 	"serde",
 	"codec/std",
