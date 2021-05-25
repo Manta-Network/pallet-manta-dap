@@ -23,102 +23,70 @@ impl MantaZKPVerifier for PrivateTransferData {
 	/// This algorithm verifies the ZKP, given the verification key and the data.
 	fn verify(&self, transfer_key_bytes: &VerificationKey) -> bool {
 		let buf: &[u8] = transfer_key_bytes.data;
-		let vk = match Groth16Vk::deserialize_unchecked(buf) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let pvk = Groth16Pvk::from(vk);
-		let proof = match Groth16Proof::deserialize(self.proof.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let k_old_1 = match CommitmentOutput::deserialize(self.sender_1.k.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let k_old_2 = match CommitmentOutput::deserialize(self.sender_2.k.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let cm_new_1 = match CommitmentOutput::deserialize(self.receiver_1.cm.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let cm_new_2 = match CommitmentOutput::deserialize(self.receiver_2.cm.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let merkle_root_1 = match HashOutput::deserialize(self.sender_1.root.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
-		let merkle_root_2 = match HashOutput::deserialize(self.sender_2.root.as_ref()) {
-			Ok(p) => p,
-			Err(_e) => {
-				return false;
-			}
-		};
 
-		let mut inputs = [
-			k_old_1.x, k_old_1.y, // sender coin 1
-			k_old_2.x, k_old_2.y, // sender coin 2
-			cm_new_1.x, cm_new_1.y, // receiver coin 1
-			cm_new_2.x, cm_new_2.y, // receiver coin 2
-		]
-		.to_vec();
-		let sn_1: Vec<Fq> =
-			match ToConstraintField::<Fq>::to_field_elements(self.sender_1.void_number.as_ref()) {
-				Some(p) => p,
-				None => {
-					return false;
-				}
-			};
-		let sn_2: Vec<Fq> =
-			match ToConstraintField::<Fq>::to_field_elements(self.sender_2.void_number.as_ref()) {
-				Some(p) => p,
-				None => {
-					return false;
-				}
-			};
+		// If we get an error in any of these parameters, we want verify() to
+		// return false. This is different from the usual result ? operator,
+		// and I think this is the shortest available syntax.
+		//
+		// When chained if-lets land in the compiler, then we can do:
+		// if let Ok(vk) = Groth16Vk::deserialize_unchecked(buf)
+		//    && let Ok(proof) = Groth16Proof::deserialize(self.proof.as_ref())
+		//    && ... {
+		if let (
+			Ok(vk),
+			Ok(proof),
+			Ok(k_old_1),
+			Ok(k_old_2),
+			Ok(cm_new_1),
+			Ok(cm_new_2),
+			Ok(merkle_root_1),
+			Ok(merkle_root_2),
+			Some(sn_1),
+			Some(sn_2),
+		) = (
+			Groth16Vk::deserialize_unchecked(buf),
+			Groth16Proof::deserialize(self.proof.as_ref()),
+			CommitmentOutput::deserialize(self.sender_1.k.as_ref()),
+			CommitmentOutput::deserialize(self.sender_2.k.as_ref()),
+			CommitmentOutput::deserialize(self.receiver_1.cm.as_ref()),
+			CommitmentOutput::deserialize(self.receiver_2.cm.as_ref()),
+			HashOutput::deserialize(self.sender_1.root.as_ref()),
+			HashOutput::deserialize(self.sender_2.root.as_ref()),
+			ToConstraintField::<Fq>::to_field_elements(self.sender_1.void_number.as_ref()),
+			ToConstraintField::<Fq>::to_field_elements(self.sender_2.void_number.as_ref()),
+		) {
+			if let (Some(mr_1), Some(mr_2)) = (
+				ToConstraintField::<Fq>::to_field_elements(&merkle_root_1),
+				ToConstraintField::<Fq>::to_field_elements(&merkle_root_2),
+			) {
+				// Now that we've determined all the inputs are valid, construct the input
+				// array for verify_proof()
+				let pvk = Groth16Pvk::from(vk);
+				let mut inputs: Vec<ark_ff::Fp256<ark_ed_on_bls12_381::FqParameters>> = [
+					k_old_1.x, k_old_1.y, // sender coin 1
+					k_old_2.x, k_old_2.y, // sender coin 2
+					cm_new_1.x, cm_new_1.y, // receiver coin 1
+					cm_new_2.x, cm_new_2.y, // receiver coin 2
+				]
+				.to_vec();
 
-		let mr_1: Vec<Fq> = match ToConstraintField::<Fq>::to_field_elements(&merkle_root_1) {
-			Some(p) => p,
-			None => {
-				return false;
-			}
-		};
-		let mr_2: Vec<Fq> = match ToConstraintField::<Fq>::to_field_elements(&merkle_root_2) {
-			Some(p) => p,
-			None => {
-				return false;
-			}
-		};
-		inputs = [
-			inputs[..].as_ref(),
-			sn_1.as_ref(),
-			sn_2.as_ref(),
-			mr_1.as_ref(),
-			mr_2.as_ref(),
-		]
-		.concat();
+				inputs = [
+					inputs[..].as_ref(),
+					sn_1.as_ref(),
+					sn_2.as_ref(),
+					mr_1.as_ref(),
+					mr_2.as_ref(),
+				]
+				.concat();
 
-		match verify_proof(&pvk, &proof, &inputs[..]) {
-			Ok(p) => p,
-			Err(_e) => false,
+				verify_proof(&pvk, &proof, &inputs[..]).unwrap_or(false)
+			} else {
+				// This case is reached when one of the inputs was invalid
+				false
+			}
+		} else {
+			// This case is reached when one of the inputs was invalid
+			false
 		}
 	}
 }
