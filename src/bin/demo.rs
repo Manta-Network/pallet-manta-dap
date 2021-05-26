@@ -70,6 +70,10 @@ fn main() {
 
 		let mut file = File::create(format!("token_{}.utxo", i)).unwrap();
 		file.write_all(data.as_ref()).unwrap();
+
+		let mut file = File::create(format!("token_{}.hex", i)).unwrap();
+		file.write_all(formating(payload.to_vec()).as_ref()).unwrap();
+
 		shards.update(&asset.commitment, hash_param.clone());
 
 		let sender = SenderMetaData::build(
@@ -109,6 +113,10 @@ fn main() {
 	let mut file = File::create("private_transfer.payload").unwrap();
 	file.write_all(data.as_ref()).unwrap();
 
+    let mut file = File::create("private_transfer.hex").unwrap();
+    file.write_all(formating(payload.to_vec()).as_ref()).unwrap();
+
+
 	// sanity checks
 	let transfer_data = PrivateTransferData::deserialize(payload.as_ref());
 	assert!(transfer_data.verify(&transfer_vk));
@@ -133,7 +141,22 @@ fn main() {
 	let mut file = File::create("reclaim.payload").unwrap();
 	file.write_all(data.as_ref()).unwrap();
 
+    let mut file = File::create("reclaim.hex").unwrap();
+    file.write_all(formating(payload.to_vec()).as_ref()).unwrap();
+
+
 	// sanity checks
 	let reclaim_data = ReclaimData::deserialize(payload.as_ref());
 	assert!(reclaim_data.verify(&reclaim_vk));
+}
+
+
+// converting a vector of u8 into a string of Hex numbers
+// with a prefix of 0x
+fn formating(input: Vec<u8>) -> String {
+	let mut res = "0x".to_string();
+	for e in input {
+		res = [res, format! {"{:02x}", e}].concat();
+	}
+	res
 }
