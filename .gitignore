@@ -15,3 +15,6 @@
 # pre-computed proving key 
 # files exceeding 100 mb LOL
 *.bin
+
+*.utxo
+*.payload

@@ -113,7 +113,7 @@ mod test;
 #[macro_use]
 extern crate std;
 
-pub use ledger::{Shard, Shards};
+pub use ledger::{LedgerSharding, Shard, Shards};
 pub use manta_crypto::MantaSerDes;
 pub use payload::*;
 pub use zkp::*;
@@ -123,7 +123,6 @@ pub use weights::WeightInfo;
 use ark_std::vec::Vec;
 use frame_support::{decl_error, decl_event, decl_module, decl_storage, ensure};
 use frame_system::ensure_signed;
-use ledger::LedgerSharding;
 use manta_asset::SanityCheck;
 use manta_crypto::*;
 use sp_runtime::traits::{StaticLookup, Zero};
