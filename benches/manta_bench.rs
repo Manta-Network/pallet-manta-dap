@@ -37,10 +37,10 @@ use std::{fs::File, io::prelude::*};
 
 criterion_group!(
 	manta_bench,
-	bench_param_io,
-	bench_pedersen_hash,
-	bench_pedersen_com,
-	bench_merkle_tree,
+	// bench_param_io,
+	// bench_pedersen_hash,
+	// bench_pedersen_com,
+	// bench_merkle_tree,
 	bench_transfer_verify,
 	bench_reclaim_verify,
 	bench_transfer_prove,

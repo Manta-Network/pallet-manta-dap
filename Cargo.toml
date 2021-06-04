@@ -41,12 +41,12 @@ hkdf = { version = "0.11", default-features = false }
 sha2 = { version = "0.9.3", default-features = false }
 
 # Manta Dependencies
-manta-asset = { branch = "manta", git = "https://github.com/Manta-Network/manta-types", default-features = false }
-manta-crypto = { branch = "manta", git = "https://github.com/Manta-Network/manta-crypto", default-features = false }
-manta-data = { branch = "manta", git = "https://github.com/Manta-Network/manta-types", default-features = false }
+manta-asset = { path = "../manta-types/manta-asset", default-features = false }
+manta-crypto = { path = "../manta-crypto", default-features = false }
+manta-data = { path = "../manta-types/manta-data", default-features = false }
 manta-error = { branch = "manta", git = "https://github.com/Manta-Network/manta-error", default-features = false }
-manta-ledger = { branch = "manta", git = "https://github.com/Manta-Network/manta-types", default-features = false }
-
+manta-ledger = { path = "../manta-types/manta-ledger", default-features = false }
+manta-api = { path = "../manta-api", default-features = false, features = [ "std" ] }
 [dev-dependencies]
 # benchmarking 
 bencher = "0.1.5"
@@ -57,7 +57,7 @@ serde = { default-features = false, version = '1' }
 sp-core = { default-features = false, version = '3.0.0' }
 sp-io = { default-features = false, version = '3.0.0' }
 
-manta-api = { branch = "manta", git = "https://github.com/Manta-Network/manta-api", default-features = false, features = [ "std" ] }
+
 
 [[bench]]
 name = "manta_bench"

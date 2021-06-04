@@ -15,4 +15,4 @@
 // along with pallet-manta-pay.  If not, see <http://www.gnu.org/licenses/>.
 
 mod crypto;
-mod frame;
+// mod frame;
