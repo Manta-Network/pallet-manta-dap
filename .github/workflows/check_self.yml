@@ -1,6 +1,6 @@
 ---
 
-name: Check Set-Up & Build Manta-Pay Pallet
+name: Check Self
 
 # Controls when the action will run.
 # yamllint disable-line rule:truthy
@@ -48,14 +48,14 @@ jobs:
           rustup component add rustfmt
       - name: Check Formatting
         run: |
-          cargo +nightly fmt --all -- --check
+          cargo fmt -- --check
       - name: Check Clippy
         run: |
-          cargo clippy --release --all
+          cargo clippy --all
       - name: Check Build
         run: |
-          cargo check --release
-          cargo +nightly check --release --features runtime-benchmarks
+          cargo check
+          cargo check --all-features
       - name: Run Tests
         run: |
-          cargo test --all-features --release
+          cargo test --all-features

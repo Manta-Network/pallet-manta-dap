@@ -67,8 +67,8 @@ harness = false
 
 [features]
 default = [ 
-	'std' 
-	]
+	'std'
+]
 
 runtime-benchmarks = [
 	"frame-benchmarking",
